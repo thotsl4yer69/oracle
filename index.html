@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MZ1312 // DRIFTER — Uncaged Technology</title>
+<meta name="description" content="DRIFTER by MZ1312. Self-hosted AI companion. Open source. Uncaged.">
+<style>
+:root{
+  --amber:#FFB000;
+  --amber-bright:#FFD060;
+  --amber-dim:#8a5d00;
+  --bg:#0a0805;
+  --bg-2:#13100a;
+  --grid:#1a1510;
+  --text:#FFE8B5;
+  --text-dim:#a08760;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'IBM Plex Mono','Courier New',monospace;
+  overflow-x:hidden;
+  line-height:1.5;
+}
+::selection{background:var(--amber);color:var(--bg)}
+
+/* CRT scanline overlay */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  pointer-events:none;
+  z-index:1000;
+  background:repeating-linear-gradient(
+    0deg,
+    rgba(255,176,0,.03) 0px,
+    rgba(255,176,0,.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+/* phosphor flicker */
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  pointer-events:none;
+  z-index:999;
+  background:radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,.4) 100%);
+  animation:flicker 8s infinite;
+}
+@keyframes flicker{
+  0%,100%{opacity:1}
+  92%{opacity:1}
+  93%{opacity:.92}
+  94%{opacity:1}
+  96%{opacity:.95}
+  97%{opacity:1}
+}
+
+/* animated background grid */
+.bg-grid{
+  position:fixed;inset:0;z-index:-1;
+  background-image:
+    linear-gradient(rgba(255,176,0,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,176,0,.06) 1px, transparent 1px);
+  background-size:60px 60px;
+  animation:gridShift 30s linear infinite;
+}
+@keyframes gridShift{
+  0%{background-position:0 0}
+  100%{background-position:60px 60px}
+}
+
+/* nav */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:1rem 2rem;
+  background:rgba(10,8,5,.9);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--amber-dim);
+}
+.logo{
+  font-size:1rem;
+  letter-spacing:.3rem;
+  color:var(--amber);
+  text-decoration:none;
+  font-weight:700;
+}
+.logo .blink{animation:blink 1.2s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{
+  color:var(--text-dim);text-decoration:none;
+  font-size:.75rem;letter-spacing:.15rem;
+  text-transform:uppercase;
+  transition:color .2s;
+}
+.nav-links a:hover{color:var(--amber-bright);text-shadow:0 0 10px var(--amber)}
+
+/* hero */
+.hero{
+  min-height:100vh;
+  display:flex;align-items:center;
+  position:relative;
+  padding:8rem 2rem 4rem;
+  max-width:1400px;
+  margin:0 auto;
+}
+.hero-inner{position:relative;z-index:2;max-width:900px}
+.boot{
+  font-size:.75rem;
+  color:var(--amber-dim);
+  margin-bottom:2rem;
+  letter-spacing:.1rem;
+}
+.boot div{padding:.15rem 0}
+.boot .ok{color:var(--amber)}
+.hero h1{
+  font-size:clamp(3rem,9vw,7rem);
+  font-weight:900;
+  line-height:.95;
+  letter-spacing:-.03em;
+  margin-bottom:1.5rem;
+  color:var(--amber-bright);
+  text-shadow:
+    0 0 20px rgba(255,176,0,.6),
+    0 0 40px rgba(255,176,0,.3);
+}
+.hero h1 .small{
+  display:block;
+  font-size:.3em;
+  letter-spacing:.5rem;
+  color:var(--amber-dim);
+  text-shadow:none;
+  margin-bottom:.5rem;
+  text-transform:uppercase;
+}
+.tagline{
+  font-size:1.2rem;
+  color:var(--text);
+  margin-bottom:1rem;
+  font-weight:300;
+}
+.subline{
+  font-size:.95rem;
+  color:var(--text-dim);
+  max-width:600px;
+  margin-bottom:2.5rem;
+  line-height:1.7;
+}
+.cta-row{display:flex;gap:1rem;flex-wrap:wrap}
+.cta{
+  display:inline-flex;align-items:center;gap:.6rem;
+  padding:1rem 2rem;
+  border:1px solid var(--amber);
+  color:var(--amber);
+  text-decoration:none;
+  font-size:.85rem;letter-spacing:.2rem;
+  text-transform:uppercase;font-weight:700;
+  background:transparent;
+  transition:all .2s;
+  font-family:inherit;
+}
+.cta:hover{background:var(--amber);color:var(--bg);box-shadow:0 0 20px rgba(255,176,0,.5)}
+.cta.secondary{border-color:var(--amber-dim);color:var(--text-dim)}
+.cta.secondary:hover{border-color:var(--amber);color:var(--amber);background:transparent}
+.cta::before{content:'>'}
+
+/* terminal block */
+.terminal{
+  margin-top:3rem;
+  background:rgba(0,0,0,.5);
+  border:1px solid var(--amber-dim);
+  padding:1.5rem;
+  font-size:.8rem;
+  max-width:600px;
+  position:relative;
+}
+.terminal::before{
+  content:'● ● ●';
+  position:absolute;top:-12px;left:1rem;
+  background:var(--bg);
+  padding:0 .5rem;
+  color:var(--amber);
+  font-size:.6rem;
+  letter-spacing:.3rem;
+}
+.terminal-line{padding:.1rem 0;color:var(--text-dim)}
+.terminal-line .prompt{color:var(--amber);margin-right:.5rem}
+.terminal-line .cmd{color:var(--text)}
+.cursor{display:inline-block;width:8px;height:14px;background:var(--amber);animation:blink 1s steps(2) infinite;vertical-align:middle}
+
+/* sections */
+section{padding:7rem 2rem;max-width:1400px;margin:0 auto;position:relative;z-index:2}
+.tag{
+  display:inline-block;
+  font-size:.7rem;
+  letter-spacing:.4rem;
+  color:var(--amber);
+  margin-bottom:1rem;
+  text-transform:uppercase;
+}
+.tag::before{content:'[ '}
+.tag::after{content:' ]'}
+.section-title{
+  font-size:clamp(2rem,5vw,3.5rem);
+  font-weight:700;
+  letter-spacing:-.02em;
+  line-height:1;
+  margin-bottom:1rem;
+  color:var(--amber-bright);
+  text-shadow:0 0 15px rgba(255,176,0,.3);
+}
+.section-sub{color:var(--text-dim);font-size:1rem;margin-bottom:3rem;max-width:600px}
+
+/* features */
+.features{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.5rem;
+}
+.feature{
+  background:var(--bg-2);
+  border:1px solid var(--amber-dim);
+  padding:2rem;
+  position:relative;
+  transition:all .3s;
+}
+.feature:hover{
+  border-color:var(--amber);
+  box-shadow:0 0 30px rgba(255,176,0,.15);
+  transform:translateY(-3px);
+}
+.feature-num{
+  position:absolute;
+  top:1rem;right:1rem;
+  font-size:.7rem;
+  color:var(--amber-dim);
+  letter-spacing:.2rem;
+}
+.feature-icon{
+  font-size:1.8rem;
+  color:var(--amber);
+  margin-bottom:1rem;
+  font-weight:900;
+}
+.feature h3{
+  font-size:1.1rem;
+  color:var(--amber-bright);
+  letter-spacing:.05rem;
+  margin-bottom:.8rem;
+  text-transform:uppercase;
+}
+.feature p{color:var(--text-dim);font-size:.85rem;line-height:1.7}
+
+/* how it works */
+.steps{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:0;
+  margin-top:2rem;
+  border:1px solid var(--amber-dim);
+}
+.step{
+  padding:2rem;
+  border-right:1px solid var(--amber-dim);
+  position:relative;
+}
+.step:last-child{border-right:none}
+.step-num{
+  font-size:3.5rem;
+  font-weight:900;
+  color:var(--amber);
+  line-height:1;
+  margin-bottom:1rem;
+  opacity:.8;
+}
+.step h3{
+  font-size:1rem;
+  color:var(--amber-bright);
+  margin-bottom:.6rem;
+  text-transform:uppercase;
+  letter-spacing:.1rem;
+}
+.step p{font-size:.85rem;color:var(--text-dim);line-height:1.6}
+
+/* comparison */
+.compare{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:2rem;
+  font-size:.85rem;
+}
+.compare th, .compare td{
+  padding:1rem 1.2rem;
+  border:1px solid var(--amber-dim);
+  text-align:left;
+}
+.compare th{
+  background:var(--bg-2);
+  color:var(--amber);
+  font-weight:700;
+  letter-spacing:.1rem;
+  text-transform:uppercase;
+  font-size:.75rem;
+}
+.compare th.us{
+  background:rgba(255,176,0,.1);
+  color:var(--amber-bright);
+}
+.compare td{color:var(--text-dim)}
+.compare td.us{color:var(--text);background:rgba(255,176,0,.03)}
+.compare .check{color:var(--amber);font-weight:700}
+.compare .cross{color:#7a4040}
+.compare tr:hover td{background:rgba(255,176,0,.02)}
+.compare tr:hover td.us{background:rgba(255,176,0,.06)}
+
+/* CTA section */
+.opensource{
+  text-align:center;
+  background:
+    radial-gradient(circle at center, rgba(255,176,0,.1), transparent 70%),
+    var(--bg-2);
+  border:1px solid var(--amber-dim);
+  padding:6rem 2rem;
+  margin:7rem auto;
+  max-width:1200px;
+  position:relative;
+  overflow:hidden;
+}
+.opensource::before{
+  content:'<MZ1312/>';
+  position:absolute;
+  font-size:18rem;
+  color:rgba(255,176,0,.03);
+  font-weight:900;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  white-space:nowrap;
+}
+.opensource-inner{position:relative;z-index:2}
+.opensource h2{
+  font-size:clamp(2rem,5vw,4rem);
+  color:var(--amber-bright);
+  text-shadow:0 0 20px rgba(255,176,0,.4);
+  margin-bottom:1rem;
+  font-weight:900;
+}
+.opensource p{
+  color:var(--text-dim);
+  max-width:600px;
+  margin:0 auto 2.5rem;
+  font-size:1rem;
+  line-height:1.8;
+}
+.repo-stats{
+  display:flex;justify-content:center;gap:3rem;
+  margin:2.5rem 0;flex-wrap:wrap;
+}
+.stat{text-align:center}
+.stat-num{
+  font-size:2rem;
+  color:var(--amber);
+  font-weight:900;
+  text-shadow:0 0 10px rgba(255,176,0,.4);
+}
+.stat-label{
+  font-size:.7rem;color:var(--text-dim);
+  letter-spacing:.3rem;text-transform:uppercase;
+}
+
+footer{
+  border-top:1px solid var(--amber-dim);
+  padding:2rem;
+  text-align:center;
+  color:var(--text-dim);
+  font-size:.7rem;
+  letter-spacing:.2rem;
+  text-transform:uppercase;
+}
+
+@media (max-width:768px){
+  nav{padding:1rem}
+  .nav-links{display:none}
+  section,.hero{padding:5rem 1.5rem}
+  .steps{grid-template-columns:1fr}
+  .step{border-right:none;border-bottom:1px solid var(--amber-dim)}
+  .step:last-child{border-bottom:none}
+  .compare{font-size:.75rem;overflow-x:auto;display:block}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<nav>
+  <a href="#" class="logo">MZ1312<span class="blink">_</span></a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#compare">Compare</a></li>
+    <li><a href="#opensource">Open Source</a></li>
+  </ul>
+</nav>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="boot">
+      <div>MZ1312 BOOT v1.31.2 // 2026.05.30</div>
+      <div>>> Loading kernel modules<span class="ok"> [OK]</span></div>
+      <div>>> Initializing speech runtime<span class="ok"> [OK]</span></div>
+      <div>>> Mounting memory store<span class="ok"> [OK]</span></div>
+      <div>>> Drifter handshake<span class="ok"> [READY]</span></div>
+    </div>
+    <h1>
+      <span class="small">// MZ1312 PROJECT</span>
+      DRIFTER.
+    </h1>
+    <p class="tagline">Uncaged technology. Your own AI companion — local, scriptable, yours.</p>
+    <p class="subline">DRIFTER is a self-hosted, voice-first AI companion you actually control. No corporate kill switch, no rented intelligence, no data leaving the device unless you say so. Run it on your hardware, modify it like a Linux box, never depend on someone else's quarterly priorities.</p>
+    <div class="cta-row">
+      <a href="#opensource" class="cta">View On GitHub</a>
+      <a href="#how" class="cta secondary">How It Works</a>
+    </div>
+    <div class="terminal">
+      <div class="terminal-line"><span class="prompt">drifter@local:~$</span><span class="cmd">drifter start --voice --memory ./me</span></div>
+      <div class="terminal-line">› Voice loop active.</div>
+      <div class="terminal-line">› Memory store: ./me/ (mounted, 2,341 fragments)</div>
+      <div class="terminal-line">› Latency: 318ms · Model: local · Tokens: unbounded</div>
+      <div class="terminal-line"><span class="prompt">drifter@local:~$</span><span class="cursor"></span></div>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <span class="tag">01 / Features</span>
+  <h2 class="section-title">Built to outlast the platform you're on.</h2>
+  <p class="section-sub">Six load-bearing pieces. No subscriptions, no rate limits, no remote sunsets.</p>
+  <div class="features">
+    <div class="feature">
+      <span class="feature-num">01</span>
+      <div class="feature-icon">▶</div>
+      <h3>Local-First Runtime</h3>
+      <p>Runs entirely on your machine. CPU or GPU. Your audio, your conversations, your memory store — none of it touches a cloud unless you wire it up yourself.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-num">02</span>
+      <div class="feature-icon">◉</div>
+      <h3>Voice-First Loop</h3>
+      <p>Real conversation, not turn-based chat. Low-latency speech in, speech out. Interruptible. Designed to feel like talking to a person, not a search bar.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-num">03</span>
+      <div class="feature-icon">⌬</div>
+      <h3>Persistent Memory</h3>
+      <p>Your own memory directory. Flat files you can grep, version, and back up. Forget on demand. Export to anything. Never locked into someone else's vector database.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-num">04</span>
+      <div class="feature-icon">⌧</div>
+      <h3>Scriptable Hooks</h3>
+      <p>Drifter can call your shell, your code, your APIs. Schedule it, pipe to it, build skills as plain executables. It's a Unix citizen, not a walled garden.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-num">05</span>
+      <div class="feature-icon">◈</div>
+      <h3>Pluggable Models</h3>
+      <p>Local Llama, MLX, Whisper, Piper — or wire in a remote API when you want it. Swap the brain without rebuilding the body. Costs stay yours.</p>
+    </div>
+    <div class="feature">
+      <span class="feature-num">06</span>
+      <div class="feature-icon">◐</div>
+      <h3>No Kill Switch</h3>
+      <p>You hold the binary, the weights, and the config. Nothing can be revoked from a dashboard 3,000 miles away. The technology stays uncaged.</p>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <span class="tag">02 / How It Works</span>
+  <h2 class="section-title">Four steps, fully local.</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h3>Clone</h3>
+      <p>Pull the repo. One binary, one config file, a few model weights. No installers, no accounts.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h3>Configure</h3>
+      <p>Pick your STT, TTS, and LLM. Local or remote. Edit one TOML file. Drifter respects your choices.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h3>Run</h3>
+      <p><code>drifter start</code> — that's it. The voice loop is live and your memory store is being written.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <h3>Extend</h3>
+      <p>Add a skill as a script. Hook into the bus. Drifter is a citizen of your shell, not a black box.</p>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <span class="tag">03 / Comparison</span>
+  <h2 class="section-title">Caged vs uncaged.</h2>
+  <p class="section-sub">A side-by-side honesty check against the platforms most people are renting today.</p>
+  <table class="compare">
+    <thead>
+      <tr>
+        <th>&nbsp;</th>
+        <th>Cloud Assistants</th>
+        <th>Walled-Garden Companions</th>
+        <th class="us">DRIFTER</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Runs offline</td><td class="cross">✕</td><td class="cross">✕</td><td class="us check">✓</td></tr>
+      <tr><td>You own your memory</td><td class="cross">✕</td><td class="cross">Partial</td><td class="us check">✓</td></tr>
+      <tr><td>Voice loop, not chat box</td><td>Partial</td><td class="check">✓</td><td class="us check">✓</td></tr>
+      <tr><td>Subscription</td><td>Required</td><td>Required</td><td class="us check">None</td></tr>
+      <tr><td>Can be sunset by vendor</td><td>Yes</td><td>Yes</td><td class="us check">Never</td></tr>
+      <tr><td>Scriptable / extensible</td><td>Limited</td><td class="cross">✕</td><td class="us check">Fully</td></tr>
+      <tr><td>Source code available</td><td class="cross">✕</td><td class="cross">✕</td><td class="us check">MIT</td></tr>
+      <tr><td>Your data leaves the device</td><td>Always</td><td>Always</td><td class="us check">Only if you say so</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="opensource" id="opensource">
+  <div class="opensource-inner">
+    <span class="tag">04 / Open Source</span>
+    <h2>MIT licensed. Forkable. Yours.</h2>
+    <p>Drifter is open source under the MIT license. Read the code, audit the runtime, fork it for your own hardware, contribute back if you find an edge to sharpen. The technology stays uncaged because the community holds the key.</p>
+    <div class="repo-stats">
+      <div class="stat"><div class="stat-num">MIT</div><div class="stat-label">License</div></div>
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Local</div></div>
+      <div class="stat"><div class="stat-num">0</div><div class="stat-label">Telemetry</div></div>
+      <div class="stat"><div class="stat-num">v1.3</div><div class="stat-label">Release</div></div>
+    </div>
+    <a href="https://github.com/thotsl4yer69" class="cta">github.com/thotsl4yer69</a>
+  </div>
+</section>
+
+<footer>
+  MZ1312 // UNCAGED TECHNOLOGY · MIT 2026 · DRIFTER v1.31.2
+</footer>
+
+</body>
+</html>
