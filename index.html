@@ -3,555 +3,665 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MZ1312 // DRIFTER — Uncaged Technology</title>
-<meta name="description" content="DRIFTER by MZ1312. Self-hosted AI companion. Open source. Uncaged.">
+<title>ORACLE // MZ1312 — Betting Analytics Terminal</title>
+<meta name="description" content="ORACLE — quantitative betting terminal. ELO, Poisson, SGM, Kelly, CLV. NRL · AFL.">
 <style>
 :root{
-  --amber:#FFB000;
-  --amber-bright:#FFD060;
-  --amber-dim:#8a5d00;
-  --bg:#0a0805;
-  --bg-2:#13100a;
-  --grid:#1a1510;
-  --text:#FFE8B5;
-  --text-dim:#a08760;
+  --bg:#000000;
+  --panel:#0a0e14;
+  --panel-2:#10151c;
+  --border:#1c2530;
+  --border-bright:#2a3848;
+  --text:#cfd6dd;
+  --text-dim:#6b7785;
+  --text-bright:#ffffff;
+  --amber:#ffa500;
+  --amber-dim:#7a4f00;
+  --green:#00d68f;
+  --green-dim:#007a52;
+  --red:#ff3860;
+  --red-dim:#7a1d30;
+  --blue:#4ea3ff;
+  --yellow:#ffd700;
+  --grid:#0e131a;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
+html,body{height:100%}
 body{
   background:var(--bg);
   color:var(--text);
-  font-family:'IBM Plex Mono','Courier New',monospace;
+  font-family:'Consolas','Monaco','Courier New',monospace;
+  font-size:12px;
+  line-height:1.35;
   overflow-x:hidden;
-  line-height:1.5;
 }
-::selection{background:var(--amber);color:var(--bg)}
+::selection{background:var(--amber);color:#000}
 
-/* CRT scanline overlay */
-body::before{
-  content:'';
-  position:fixed;inset:0;
-  pointer-events:none;
-  z-index:1000;
-  background:repeating-linear-gradient(
-    0deg,
-    rgba(255,176,0,.03) 0px,
-    rgba(255,176,0,.03) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-}
-/* phosphor flicker */
-body::after{
-  content:'';
-  position:fixed;inset:0;
-  pointer-events:none;
-  z-index:999;
-  background:radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,.4) 100%);
-  animation:flicker 8s infinite;
-}
-@keyframes flicker{
-  0%,100%{opacity:1}
-  92%{opacity:1}
-  93%{opacity:.92}
-  94%{opacity:1}
-  96%{opacity:.95}
-  97%{opacity:1}
-}
-
-/* animated background grid */
-.bg-grid{
-  position:fixed;inset:0;z-index:-1;
-  background-image:
-    linear-gradient(rgba(255,176,0,.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,176,0,.06) 1px, transparent 1px);
-  background-size:60px 60px;
-  animation:gridShift 30s linear infinite;
-}
-@keyframes gridShift{
-  0%{background-position:0 0}
-  100%{background-position:60px 60px}
-}
-
-/* nav */
-nav{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  display:flex;justify-content:space-between;align-items:center;
-  padding:1rem 2rem;
-  background:rgba(10,8,5,.9);
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--amber-dim);
-}
-.logo{
-  font-size:1rem;
-  letter-spacing:.3rem;
-  color:var(--amber);
-  text-decoration:none;
-  font-weight:700;
-}
-.logo .blink{animation:blink 1.2s steps(2) infinite}
-@keyframes blink{50%{opacity:0}}
-.nav-links{display:flex;gap:2rem;list-style:none}
-.nav-links a{
-  color:var(--text-dim);text-decoration:none;
-  font-size:.75rem;letter-spacing:.15rem;
-  text-transform:uppercase;
-  transition:color .2s;
-}
-.nav-links a:hover{color:var(--amber-bright);text-shadow:0 0 10px var(--amber)}
-
-/* hero */
-.hero{
-  min-height:100vh;
-  display:flex;align-items:center;
-  position:relative;
-  padding:8rem 2rem 4rem;
-  max-width:1400px;
-  margin:0 auto;
-}
-.hero-inner{position:relative;z-index:2;max-width:900px}
-.boot{
-  font-size:.75rem;
-  color:var(--amber-dim);
-  margin-bottom:2rem;
-  letter-spacing:.1rem;
-}
-.boot div{padding:.15rem 0}
-.boot .ok{color:var(--amber)}
-.hero h1{
-  font-size:clamp(3rem,9vw,7rem);
-  font-weight:900;
-  line-height:.95;
-  letter-spacing:-.03em;
-  margin-bottom:1.5rem;
-  color:var(--amber-bright);
-  text-shadow:
-    0 0 20px rgba(255,176,0,.6),
-    0 0 40px rgba(255,176,0,.3);
-}
-.hero h1 .small{
-  display:block;
-  font-size:.3em;
-  letter-spacing:.5rem;
-  color:var(--amber-dim);
-  text-shadow:none;
-  margin-bottom:.5rem;
-  text-transform:uppercase;
-}
-.tagline{
-  font-size:1.2rem;
-  color:var(--text);
-  margin-bottom:1rem;
-  font-weight:300;
-}
-.subline{
-  font-size:.95rem;
-  color:var(--text-dim);
-  max-width:600px;
-  margin-bottom:2.5rem;
-  line-height:1.7;
-}
-.cta-row{display:flex;gap:1rem;flex-wrap:wrap}
-.cta{
-  display:inline-flex;align-items:center;gap:.6rem;
-  padding:1rem 2rem;
-  border:1px solid var(--amber);
-  color:var(--amber);
-  text-decoration:none;
-  font-size:.85rem;letter-spacing:.2rem;
-  text-transform:uppercase;font-weight:700;
-  background:transparent;
-  transition:all .2s;
-  font-family:inherit;
-}
-.cta:hover{background:var(--amber);color:var(--bg);box-shadow:0 0 20px rgba(255,176,0,.5)}
-.cta.secondary{border-color:var(--amber-dim);color:var(--text-dim)}
-.cta.secondary:hover{border-color:var(--amber);color:var(--amber);background:transparent}
-.cta::before{content:'>'}
-
-/* terminal block */
-.terminal{
-  margin-top:3rem;
-  background:rgba(0,0,0,.5);
-  border:1px solid var(--amber-dim);
-  padding:1.5rem;
-  font-size:.8rem;
-  max-width:600px;
-  position:relative;
-}
-.terminal::before{
-  content:'● ● ●';
-  position:absolute;top:-12px;left:1rem;
+/* Top status bar */
+.topbar{
+  position:sticky;top:0;z-index:100;
   background:var(--bg);
-  padding:0 .5rem;
-  color:var(--amber);
-  font-size:.6rem;
-  letter-spacing:.3rem;
+  border-bottom:1px solid var(--border-bright);
+  padding:6px 14px;
+  display:flex;align-items:center;gap:18px;
+  font-size:11px;text-transform:uppercase;letter-spacing:0.08em;
 }
-.terminal-line{padding:.1rem 0;color:var(--text-dim)}
-.terminal-line .prompt{color:var(--amber);margin-right:.5rem}
-.terminal-line .cmd{color:var(--text)}
-.cursor{display:inline-block;width:8px;height:14px;background:var(--amber);animation:blink 1s steps(2) infinite;vertical-align:middle}
+.brand{color:var(--amber);font-weight:700;letter-spacing:0.18em}
+.brand .sub{color:var(--text-dim);margin-left:8px;font-weight:400}
+.statline{display:flex;gap:14px;color:var(--text-dim);margin-left:auto}
+.statline span b{color:var(--text-bright);font-weight:500}
+.statline .up{color:var(--green)}
+.statline .dn{color:var(--red)}
+.clock{color:var(--amber);font-variant-numeric:tabular-nums}
 
-/* sections */
-section{padding:7rem 2rem;max-width:1400px;margin:0 auto;position:relative;z-index:2}
-.tag{
-  display:inline-block;
-  font-size:.7rem;
-  letter-spacing:.4rem;
-  color:var(--amber);
-  margin-bottom:1rem;
-  text-transform:uppercase;
-}
-.tag::before{content:'[ '}
-.tag::after{content:' ]'}
-.section-title{
-  font-size:clamp(2rem,5vw,3.5rem);
-  font-weight:700;
-  letter-spacing:-.02em;
-  line-height:1;
-  margin-bottom:1rem;
-  color:var(--amber-bright);
-  text-shadow:0 0 15px rgba(255,176,0,.3);
-}
-.section-sub{color:var(--text-dim);font-size:1rem;margin-bottom:3rem;max-width:600px}
-
-/* features */
-.features{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:1.5rem;
-}
-.feature{
-  background:var(--bg-2);
-  border:1px solid var(--amber-dim);
-  padding:2rem;
-  position:relative;
-  transition:all .3s;
-}
-.feature:hover{
-  border-color:var(--amber);
-  box-shadow:0 0 30px rgba(255,176,0,.15);
-  transform:translateY(-3px);
-}
-.feature-num{
-  position:absolute;
-  top:1rem;right:1rem;
-  font-size:.7rem;
-  color:var(--amber-dim);
-  letter-spacing:.2rem;
-}
-.feature-icon{
-  font-size:1.8rem;
-  color:var(--amber);
-  margin-bottom:1rem;
-  font-weight:900;
-}
-.feature h3{
-  font-size:1.1rem;
-  color:var(--amber-bright);
-  letter-spacing:.05rem;
-  margin-bottom:.8rem;
-  text-transform:uppercase;
-}
-.feature p{color:var(--text-dim);font-size:.85rem;line-height:1.7}
-
-/* how it works */
-.steps{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:0;
-  margin-top:2rem;
-  border:1px solid var(--amber-dim);
-}
-.step{
-  padding:2rem;
-  border-right:1px solid var(--amber-dim);
-  position:relative;
-}
-.step:last-child{border-right:none}
-.step-num{
-  font-size:3.5rem;
-  font-weight:900;
-  color:var(--amber);
-  line-height:1;
-  margin-bottom:1rem;
-  opacity:.8;
-}
-.step h3{
-  font-size:1rem;
-  color:var(--amber-bright);
-  margin-bottom:.6rem;
-  text-transform:uppercase;
-  letter-spacing:.1rem;
-}
-.step p{font-size:.85rem;color:var(--text-dim);line-height:1.6}
-
-/* comparison */
-.compare{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:2rem;
-  font-size:.85rem;
-}
-.compare th, .compare td{
-  padding:1rem 1.2rem;
-  border:1px solid var(--amber-dim);
-  text-align:left;
-}
-.compare th{
-  background:var(--bg-2);
-  color:var(--amber);
-  font-weight:700;
-  letter-spacing:.1rem;
-  text-transform:uppercase;
-  font-size:.75rem;
-}
-.compare th.us{
-  background:rgba(255,176,0,.1);
-  color:var(--amber-bright);
-}
-.compare td{color:var(--text-dim)}
-.compare td.us{color:var(--text);background:rgba(255,176,0,.03)}
-.compare .check{color:var(--amber);font-weight:700}
-.compare .cross{color:#7a4040}
-.compare tr:hover td{background:rgba(255,176,0,.02)}
-.compare tr:hover td.us{background:rgba(255,176,0,.06)}
-
-/* CTA section */
-.opensource{
-  text-align:center;
-  background:
-    radial-gradient(circle at center, rgba(255,176,0,.1), transparent 70%),
-    var(--bg-2);
-  border:1px solid var(--amber-dim);
-  padding:6rem 2rem;
-  margin:7rem auto;
-  max-width:1200px;
-  position:relative;
+/* Ticker */
+.ticker{
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
   overflow:hidden;
-}
-.opensource::before{
-  content:'<MZ1312/>';
-  position:absolute;
-  font-size:18rem;
-  color:rgba(255,176,0,.03);
-  font-weight:900;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
   white-space:nowrap;
+  padding:5px 0;
+  font-size:11px;
 }
-.opensource-inner{position:relative;z-index:2}
-.opensource h2{
-  font-size:clamp(2rem,5vw,4rem);
-  color:var(--amber-bright);
-  text-shadow:0 0 20px rgba(255,176,0,.4);
-  margin-bottom:1rem;
-  font-weight:900;
+.ticker-track{
+  display:inline-block;
+  animation:marquee 60s linear infinite;
+  padding-left:100%;
 }
-.opensource p{
-  color:var(--text-dim);
-  max-width:600px;
-  margin:0 auto 2.5rem;
-  font-size:1rem;
-  line-height:1.8;
+.ticker-track span{margin-right:34px;color:var(--text-dim)}
+.ticker-track b{color:var(--text-bright);margin-right:6px}
+.ticker-track .up{color:var(--green)}
+.ticker-track .dn{color:var(--red)}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+
+/* Layout */
+.app{
+  display:grid;
+  grid-template-columns:240px 1fr 320px;
+  gap:1px;
+  background:var(--border);
+  min-height:calc(100vh - 60px);
 }
-.repo-stats{
-  display:flex;justify-content:center;gap:3rem;
-  margin:2.5rem 0;flex-wrap:wrap;
-}
-.stat{text-align:center}
-.stat-num{
-  font-size:2rem;
-  color:var(--amber);
-  font-weight:900;
-  text-shadow:0 0 10px rgba(255,176,0,.4);
-}
-.stat-label{
-  font-size:.7rem;color:var(--text-dim);
-  letter-spacing:.3rem;text-transform:uppercase;
+@media (max-width:1100px){
+  .app{grid-template-columns:1fr}
 }
 
-footer{
-  border-top:1px solid var(--amber-dim);
-  padding:2rem;
-  text-align:center;
-  color:var(--text-dim);
-  font-size:.7rem;
-  letter-spacing:.2rem;
-  text-transform:uppercase;
+/* Sidebar */
+.side{
+  background:var(--bg);
+  padding:14px 0;
+  border-right:1px solid var(--border);
+}
+.side h3{
+  font-size:10px;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--text-dim);padding:0 14px 6px;font-weight:500;
+}
+.side nav a{
+  display:block;padding:6px 14px;color:var(--text);
+  font-size:12px;border-left:2px solid transparent;
+  cursor:pointer;text-decoration:none;
+}
+.side nav a:hover{background:var(--panel);color:var(--amber)}
+.side nav a.active{
+  background:var(--panel);color:var(--amber);
+  border-left-color:var(--amber);
+}
+.side .div{height:1px;background:var(--border);margin:12px 0}
+
+/* Main grid */
+.main{
+  background:var(--bg);
+  padding:14px;
+  display:grid;
+  gap:14px;
+  grid-template-columns:1fr 1fr;
+  align-content:start;
+}
+@media (max-width:900px){.main{grid-template-columns:1fr}}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:2px;
+}
+.panel.wide{grid-column:1/-1}
+.panel-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;
+  background:var(--panel-2);
+  border-bottom:1px solid var(--border);
+}
+.panel-head h2{
+  font-size:11px;font-weight:600;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--amber);
+}
+.panel-head .meta{font-size:10px;color:var(--text-dim);letter-spacing:0.08em}
+.panel-body{padding:12px}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:11px}
+th,td{
+  text-align:left;padding:5px 8px;
+  border-bottom:1px dotted var(--border);
+}
+th{
+  color:var(--text-dim);font-weight:500;
+  text-transform:uppercase;letter-spacing:0.08em;font-size:10px;
+}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:hover td{background:var(--panel-2)}
+.up{color:var(--green)}
+.dn{color:var(--red)}
+.flat{color:var(--text-dim)}
+.tag{
+  display:inline-block;padding:1px 6px;
+  font-size:9px;letter-spacing:0.1em;
+  border:1px solid var(--border-bright);border-radius:2px;
+}
+.tag.nrl{color:var(--amber);border-color:var(--amber-dim)}
+.tag.afl{color:var(--blue);border-color:#274869}
+
+/* Controls */
+input,select,button{
+  background:var(--bg);
+  border:1px solid var(--border-bright);
+  color:var(--text);
+  font-family:inherit;font-size:12px;
+  padding:5px 8px;
+  border-radius:2px;
+}
+input:focus,select:focus{outline:none;border-color:var(--amber)}
+button{
+  cursor:pointer;background:var(--amber);color:#000;
+  border-color:var(--amber);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.1em;font-size:11px;
+}
+button:hover{background:var(--text-bright);border-color:var(--text-bright)}
+button.ghost{
+  background:transparent;color:var(--text);
+}
+button.ghost:hover{background:var(--panel-2);color:var(--amber)}
+
+.row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.row label{
+  color:var(--text-dim);text-transform:uppercase;
+  font-size:10px;letter-spacing:0.1em;min-width:96px;
+}
+.row input,.row select{flex:1}
+.kvs{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;margin-top:8px}
+.kv{display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:1px dotted var(--border);padding:4px 0;font-size:11px}
+.kv .k{color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;font-size:10px}
+.kv .v{color:var(--text-bright);font-variant-numeric:tabular-nums;font-weight:600}
+.kv .v.up{color:var(--green)}
+.kv .v.dn{color:var(--red)}
+.kv .v.amber{color:var(--amber)}
+
+/* Sparkline chart */
+.spark{
+  display:block;width:100%;height:64px;
+  background:var(--panel-2);border:1px solid var(--border);
+  border-radius:2px;
 }
 
-@media (max-width:768px){
-  nav{padding:1rem}
-  .nav-links{display:none}
-  section,.hero{padding:5rem 1.5rem}
-  .steps{grid-template-columns:1fr}
-  .step{border-right:none;border-bottom:1px solid var(--amber-dim)}
-  .step:last-child{border-bottom:none}
-  .compare{font-size:.75rem;overflow-x:auto;display:block}
+/* SGM builder */
+.leg{
+  display:grid;grid-template-columns:1fr 80px 24px;
+  gap:6px;align-items:center;
+  padding:6px 0;border-bottom:1px dotted var(--border);
 }
+.leg-remove{
+  background:transparent;color:var(--red);
+  border:1px solid var(--red-dim);padding:2px 6px;font-size:11px;
+}
+
+/* Right rail */
+.rail{background:var(--bg);padding:14px;border-left:1px solid var(--border)}
+.rail .panel + .panel{margin-top:14px}
+
+/* Footer */
+.foot{
+  background:var(--bg);
+  border-top:1px solid var(--border-bright);
+  padding:8px 14px;
+  display:flex;justify-content:space-between;
+  color:var(--text-dim);font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.foot a{color:var(--amber);text-decoration:none}
+
+/* Blink */
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--green);box-shadow:0 0 6px var(--green);
+  margin-right:6px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:0.4}}
+
+.scroll{max-height:340px;overflow-y:auto}
+.scroll::-webkit-scrollbar{width:6px;height:6px}
+.scroll::-webkit-scrollbar-track{background:var(--bg)}
+.scroll::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:3px}
 </style>
 </head>
 <body>
 
-<div class="bg-grid"></div>
+<div class="topbar">
+  <span class="brand">MZ1312 · ORACLE<span class="sub">v0.4.0 betting terminal</span></span>
+  <span class="statline">
+    <span><b class="dot"></b>FEED LIVE</span>
+    <span>BANKROLL <b>$10,000.00</b></span>
+    <span>P/L (30D) <b class="up">+$1,847.50</b></span>
+    <span>ROI <b class="up">+18.5%</b></span>
+    <span>CLV <b class="up">+3.2%</b></span>
+    <span>YIELD <b class="up">+11.4%</b></span>
+    <span class="clock" id="clock">--:--:--</span>
+  </span>
+</div>
 
-<nav>
-  <a href="#" class="logo">MZ1312<span class="blink">_</span></a>
-  <ul class="nav-links">
-    <li><a href="#features">Features</a></li>
-    <li><a href="#how">How It Works</a></li>
-    <li><a href="#compare">Compare</a></li>
-    <li><a href="#opensource">Open Source</a></li>
-  </ul>
-</nav>
-
-<header class="hero">
-  <div class="hero-inner">
-    <div class="boot">
-      <div>MZ1312 BOOT v1.31.2 // 2026.05.30</div>
-      <div>>> Loading kernel modules<span class="ok"> [OK]</span></div>
-      <div>>> Initializing speech runtime<span class="ok"> [OK]</span></div>
-      <div>>> Mounting memory store<span class="ok"> [OK]</span></div>
-      <div>>> Drifter handshake<span class="ok"> [READY]</span></div>
-    </div>
-    <h1>
-      <span class="small">// MZ1312 PROJECT</span>
-      DRIFTER.
-    </h1>
-    <p class="tagline">Uncaged technology. Your own AI companion — local, scriptable, yours.</p>
-    <p class="subline">DRIFTER is a self-hosted, voice-first AI companion you actually control. No corporate kill switch, no rented intelligence, no data leaving the device unless you say so. Run it on your hardware, modify it like a Linux box, never depend on someone else's quarterly priorities.</p>
-    <div class="cta-row">
-      <a href="#opensource" class="cta">View On GitHub</a>
-      <a href="#how" class="cta secondary">How It Works</a>
-    </div>
-    <div class="terminal">
-      <div class="terminal-line"><span class="prompt">drifter@local:~$</span><span class="cmd">drifter start --voice --memory ./me</span></div>
-      <div class="terminal-line">› Voice loop active.</div>
-      <div class="terminal-line">› Memory store: ./me/ (mounted, 2,341 fragments)</div>
-      <div class="terminal-line">› Latency: 318ms · Model: local · Tokens: unbounded</div>
-      <div class="terminal-line"><span class="prompt">drifter@local:~$</span><span class="cursor"></span></div>
-    </div>
+<div class="ticker">
+  <div class="ticker-track">
+    <span><b>STORM v PANTHERS</b> H 1.85 <span class="up">▲0.03</span></span>
+    <span><b>BRONCOS v EELS</b> H 2.10 <span class="dn">▼0.05</span></span>
+    <span><b>RABBITOHS v ROOSTERS</b> H 1.95 <span class="flat">─</span></span>
+    <span><b>WARRIORS v COWBOYS</b> H 2.40 <span class="up">▲0.08</span></span>
+    <span><b>COLLINGWOOD v CARLTON</b> H 1.72 <span class="up">▲0.02</span></span>
+    <span><b>ESSENDON v RICHMOND</b> H 2.65 <span class="dn">▼0.10</span></span>
+    <span><b>GEELONG v BRISBANE</b> H 1.90 <span class="up">▲0.04</span></span>
+    <span><b>SYDNEY v MELB</b> H 2.20 <span class="dn">▼0.06</span></span>
+    <span><b>FREMANTLE v ADELAIDE</b> H 1.58 <span class="up">▲0.01</span></span>
+    <span><b>GIANTS v HAWTHORN</b> H 2.80 <span class="up">▲0.12</span></span>
   </div>
-</header>
+</div>
 
-<section id="features">
-  <span class="tag">01 / Features</span>
-  <h2 class="section-title">Built to outlast the platform you're on.</h2>
-  <p class="section-sub">Six load-bearing pieces. No subscriptions, no rate limits, no remote sunsets.</p>
-  <div class="features">
-    <div class="feature">
-      <span class="feature-num">01</span>
-      <div class="feature-icon">▶</div>
-      <h3>Local-First Runtime</h3>
-      <p>Runs entirely on your machine. CPU or GPU. Your audio, your conversations, your memory store — none of it touches a cloud unless you wire it up yourself.</p>
-    </div>
-    <div class="feature">
-      <span class="feature-num">02</span>
-      <div class="feature-icon">◉</div>
-      <h3>Voice-First Loop</h3>
-      <p>Real conversation, not turn-based chat. Low-latency speech in, speech out. Interruptible. Designed to feel like talking to a person, not a search bar.</p>
-    </div>
-    <div class="feature">
-      <span class="feature-num">03</span>
-      <div class="feature-icon">⌬</div>
-      <h3>Persistent Memory</h3>
-      <p>Your own memory directory. Flat files you can grep, version, and back up. Forget on demand. Export to anything. Never locked into someone else's vector database.</p>
-    </div>
-    <div class="feature">
-      <span class="feature-num">04</span>
-      <div class="feature-icon">⌧</div>
-      <h3>Scriptable Hooks</h3>
-      <p>Drifter can call your shell, your code, your APIs. Schedule it, pipe to it, build skills as plain executables. It's a Unix citizen, not a walled garden.</p>
-    </div>
-    <div class="feature">
-      <span class="feature-num">05</span>
-      <div class="feature-icon">◈</div>
-      <h3>Pluggable Models</h3>
-      <p>Local Llama, MLX, Whisper, Piper — or wire in a remote API when you want it. Swap the brain without rebuilding the body. Costs stay yours.</p>
-    </div>
-    <div class="feature">
-      <span class="feature-num">06</span>
-      <div class="feature-icon">◐</div>
-      <h3>No Kill Switch</h3>
-      <p>You hold the binary, the weights, and the config. Nothing can be revoked from a dashboard 3,000 miles away. The technology stays uncaged.</p>
-    </div>
-  </div>
-</section>
+<div class="app">
 
-<section id="how">
-  <span class="tag">02 / How It Works</span>
-  <h2 class="section-title">Four steps, fully local.</h2>
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">01</div>
-      <h3>Clone</h3>
-      <p>Pull the repo. One binary, one config file, a few model weights. No installers, no accounts.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">02</div>
-      <h3>Configure</h3>
-      <p>Pick your STT, TTS, and LLM. Local or remote. Edit one TOML file. Drifter respects your choices.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">03</div>
-      <h3>Run</h3>
-      <p><code>drifter start</code> — that's it. The voice loop is live and your memory store is being written.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">04</div>
-      <h3>Extend</h3>
-      <p>Add a skill as a script. Hook into the bus. Drifter is a citizen of your shell, not a black box.</p>
-    </div>
-  </div>
-</section>
+  <aside class="side">
+    <h3>Markets</h3>
+    <nav>
+      <a class="active">▸ NRL · Premiership</a>
+      <a>  AFL · Premiership</a>
+      <a>  NRL · State of Origin</a>
+      <a>  AFL · Finals Series</a>
+    </nav>
+    <div class="div"></div>
+    <h3>Models</h3>
+    <nav>
+      <a>ELO Power Ratings</a>
+      <a>Poisson · Score Sim</a>
+      <a>SGM Builder</a>
+      <a>Kelly Sizing</a>
+      <a>CLV Tracker</a>
+    </nav>
+    <div class="div"></div>
+    <h3>Account</h3>
+    <nav>
+      <a>Bankroll</a>
+      <a>Open Positions (4)</a>
+      <a>Closed (128)</a>
+      <a>Risk Limits</a>
+    </nav>
+    <div class="div"></div>
+    <h3>Sources</h3>
+    <nav>
+      <a>Sportsbet · Live</a>
+      <a>TAB · Live</a>
+      <a>Pointsbet · Live</a>
+      <a>Bet365 · Live</a>
+    </nav>
+  </aside>
 
-<section id="compare">
-  <span class="tag">03 / Comparison</span>
-  <h2 class="section-title">Caged vs uncaged.</h2>
-  <p class="section-sub">A side-by-side honesty check against the platforms most people are renting today.</p>
-  <table class="compare">
-    <thead>
-      <tr>
-        <th>&nbsp;</th>
-        <th>Cloud Assistants</th>
-        <th>Walled-Garden Companions</th>
-        <th class="us">DRIFTER</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>Runs offline</td><td class="cross">✕</td><td class="cross">✕</td><td class="us check">✓</td></tr>
-      <tr><td>You own your memory</td><td class="cross">✕</td><td class="cross">Partial</td><td class="us check">✓</td></tr>
-      <tr><td>Voice loop, not chat box</td><td>Partial</td><td class="check">✓</td><td class="us check">✓</td></tr>
-      <tr><td>Subscription</td><td>Required</td><td>Required</td><td class="us check">None</td></tr>
-      <tr><td>Can be sunset by vendor</td><td>Yes</td><td>Yes</td><td class="us check">Never</td></tr>
-      <tr><td>Scriptable / extensible</td><td>Limited</td><td class="cross">✕</td><td class="us check">Fully</td></tr>
-      <tr><td>Source code available</td><td class="cross">✕</td><td class="cross">✕</td><td class="us check">MIT</td></tr>
-      <tr><td>Your data leaves the device</td><td>Always</td><td>Always</td><td class="us check">Only if you say so</td></tr>
-    </tbody>
-  </table>
-</section>
+  <main class="main">
 
-<section class="opensource" id="opensource">
-  <div class="opensource-inner">
-    <span class="tag">04 / Open Source</span>
-    <h2>MIT licensed. Forkable. Yours.</h2>
-    <p>Drifter is open source under the MIT license. Read the code, audit the runtime, fork it for your own hardware, contribute back if you find an edge to sharpen. The technology stays uncaged because the community holds the key.</p>
-    <div class="repo-stats">
-      <div class="stat"><div class="stat-num">MIT</div><div class="stat-label">License</div></div>
-      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Local</div></div>
-      <div class="stat"><div class="stat-num">0</div><div class="stat-label">Telemetry</div></div>
-      <div class="stat"><div class="stat-num">v1.3</div><div class="stat-label">Release</div></div>
+    <!-- ELO Power Ratings -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>ELO Power Ratings · NRL</h2>
+        <span class="meta">k=20 · HFA=65 · last update 03:14</span>
+      </div>
+      <div class="panel-body">
+        <table>
+          <thead><tr><th>#</th><th>Team</th><th class="num">ELO</th><th class="num">Δ7d</th><th class="num">Form</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Melbourne Storm</td><td class="num">1742</td><td class="num up">+18</td><td class="num">WWWWL</td></tr>
+            <tr><td>2</td><td>Penrith Panthers</td><td class="num">1718</td><td class="num up">+9</td><td class="num">WWLWW</td></tr>
+            <tr><td>3</td><td>Brisbane Broncos</td><td class="num">1689</td><td class="num dn">-12</td><td class="num">LWWWL</td></tr>
+            <tr><td>4</td><td>South Sydney Rabbitohs</td><td class="num">1663</td><td class="num up">+4</td><td class="num">WWLLW</td></tr>
+            <tr><td>5</td><td>Sydney Roosters</td><td class="num">1651</td><td class="num up">+7</td><td class="num">WWLWW</td></tr>
+            <tr><td>6</td><td>Parramatta Eels</td><td class="num">1612</td><td class="num dn">-5</td><td class="num">LWWLL</td></tr>
+            <tr><td>7</td><td>NZ Warriors</td><td class="num">1598</td><td class="num up">+11</td><td class="num">WLWWW</td></tr>
+            <tr><td>8</td><td>North QLD Cowboys</td><td class="num">1574</td><td class="num flat">0</td><td class="num">WLWLW</td></tr>
+            <tr><td>9</td><td>Manly Sea Eagles</td><td class="num">1561</td><td class="num dn">-9</td><td class="num">LLWLW</td></tr>
+            <tr><td>10</td><td>Cronulla Sharks</td><td class="num">1548</td><td class="num up">+3</td><td class="num">WLWLL</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ELO AFL -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>ELO Power Ratings · AFL</h2>
+        <span class="meta">k=22 · HFA=72 · last update 03:14</span>
+      </div>
+      <div class="panel-body">
+        <table>
+          <thead><tr><th>#</th><th>Team</th><th class="num">ELO</th><th class="num">Δ7d</th><th class="num">Form</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Collingwood</td><td class="num">1768</td><td class="num up">+14</td><td class="num">WWWWW</td></tr>
+            <tr><td>2</td><td>Brisbane Lions</td><td class="num">1741</td><td class="num up">+11</td><td class="num">WWLWW</td></tr>
+            <tr><td>3</td><td>Geelong Cats</td><td class="num">1708</td><td class="num dn">-7</td><td class="num">WLWWL</td></tr>
+            <tr><td>4</td><td>Melbourne Demons</td><td class="num">1692</td><td class="num up">+5</td><td class="num">WWLLW</td></tr>
+            <tr><td>5</td><td>Port Adelaide</td><td class="num">1678</td><td class="num up">+8</td><td class="num">WLWWW</td></tr>
+            <tr><td>6</td><td>Sydney Swans</td><td class="num">1654</td><td class="num dn">-10</td><td class="num">LWLLW</td></tr>
+            <tr><td>7</td><td>Carlton</td><td class="num">1641</td><td class="num up">+6</td><td class="num">LWWWL</td></tr>
+            <tr><td>8</td><td>St Kilda</td><td class="num">1625</td><td class="num flat">+1</td><td class="num">WLWLW</td></tr>
+            <tr><td>9</td><td>GWS Giants</td><td class="num">1610</td><td class="num up">+9</td><td class="num">WWLWL</td></tr>
+            <tr><td>10</td><td>Western Bulldogs</td><td class="num">1597</td><td class="num dn">-4</td><td class="num">LWLWL</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Poisson Model -->
+    <section class="panel wide">
+      <div class="panel-head">
+        <h2>Poisson Score Simulator</h2>
+        <span class="meta">10,000 iterations · Dixon-Coles ρ=-0.04</span>
+      </div>
+      <div class="panel-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+          <div>
+            <div class="row"><label>Home Team</label><select id="pHome">
+              <option>Melbourne Storm</option><option>Penrith Panthers</option>
+              <option>Brisbane Broncos</option><option>South Sydney</option>
+            </select></div>
+            <div class="row"><label>Away Team</label><select id="pAway">
+              <option>Penrith Panthers</option><option>Brisbane Broncos</option>
+              <option>Melbourne Storm</option><option>South Sydney</option>
+            </select></div>
+            <div class="row"><label>Home λ (xG)</label><input id="pLh" type="number" step="0.1" value="24.4"></div>
+            <div class="row"><label>Away λ (xG)</label><input id="pLa" type="number" step="0.1" value="18.7"></div>
+            <div class="row"><label>HFA pts</label><input id="pHfa" type="number" step="0.5" value="3.5"></div>
+            <button onclick="runPoisson()">▸ SIMULATE 10,000 GAMES</button>
+          </div>
+          <div>
+            <div class="kvs">
+              <div class="kv"><span class="k">Home Win %</span><span class="v amber" id="pWh">68.4</span></div>
+              <div class="kv"><span class="k">Away Win %</span><span class="v" id="pWa">28.2</span></div>
+              <div class="kv"><span class="k">Draw %</span><span class="v" id="pDr">3.4</span></div>
+              <div class="kv"><span class="k">Most likely</span><span class="v" id="pScr">24-18</span></div>
+              <div class="kv"><span class="k">Fair H odds</span><span class="v amber" id="pFhO">1.46</span></div>
+              <div class="kv"><span class="k">Fair A odds</span><span class="v" id="pFaO">3.55</span></div>
+              <div class="kv"><span class="k">Total μ</span><span class="v" id="pTot">42.6</span></div>
+              <div class="kv"><span class="k">Over 40.5</span><span class="v" id="pOver">62.1%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SGM Builder -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>SGM Builder · Same-Game Multi</h2>
+        <span class="meta">correlation matrix v0.3</span>
+      </div>
+      <div class="panel-body">
+        <div class="row"><label>Match</label><select id="sgmMatch">
+          <option>Storm v Panthers · Sat 19:50</option>
+          <option>Broncos v Eels · Fri 19:55</option>
+          <option>Collingwood v Carlton · Sat 14:10</option>
+        </select></div>
+        <div id="legs">
+          <div class="leg">
+            <select><option>Storm to win</option><option>Panthers to win</option><option>Storm -4.5</option></select>
+            <input type="number" step="0.01" value="1.85" class="num">
+            <button class="leg-remove">×</button>
+          </div>
+          <div class="leg">
+            <select><option>Over 42.5 pts</option><option>Under 42.5 pts</option><option>Over 36.5 pts</option></select>
+            <input type="number" step="0.01" value="1.92" class="num">
+            <button class="leg-remove">×</button>
+          </div>
+          <div class="leg">
+            <select><option>R Papenhuyzen 1+ Try</option><option>N Hynes 1+ Try</option><option>J Cleary 1+ Try</option></select>
+            <input type="number" step="0.01" value="2.40" class="num">
+            <button class="leg-remove">×</button>
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="ghost" onclick="addLeg()">+ ADD LEG</button>
+          <button onclick="priceSgm()">▸ PRICE SGM</button>
+        </div>
+        <div class="kvs" style="margin-top:14px">
+          <div class="kv"><span class="k">Naive @</span><span class="v" id="sgmNaive">8.52</span></div>
+          <div class="kv"><span class="k">Bookie @</span><span class="v" id="sgmBook">6.20</span></div>
+          <div class="kv"><span class="k">Correlation</span><span class="v" id="sgmCorr">+0.27</span></div>
+          <div class="kv"><span class="k">Fair @</span><span class="v amber" id="sgmFair">7.10</span></div>
+          <div class="kv"><span class="k">Edge</span><span class="v up" id="sgmEdge">+14.5%</span></div>
+          <div class="kv"><span class="k">Kelly stake</span><span class="v amber" id="sgmKelly">$184</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kelly Calculator -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Kelly Position Sizer</h2>
+        <span class="meta">fractional · half-Kelly default</span>
+      </div>
+      <div class="panel-body">
+        <div class="row"><label>Bankroll $</label><input id="kBank" type="number" value="10000"></div>
+        <div class="row"><label>Decimal Odds</label><input id="kOdds" type="number" step="0.01" value="1.85"></div>
+        <div class="row"><label>Model P (true)</label><input id="kP" type="number" step="0.001" value="0.580"></div>
+        <div class="row"><label>Kelly fraction</label>
+          <select id="kFrac"><option value="1">Full</option><option value="0.5" selected>Half</option><option value="0.25">Quarter</option></select>
+        </div>
+        <button onclick="kellyCalc()">▸ COMPUTE</button>
+        <div class="kvs" style="margin-top:14px">
+          <div class="kv"><span class="k">Implied P</span><span class="v" id="kImp">54.1%</span></div>
+          <div class="kv"><span class="k">Edge</span><span class="v up" id="kEdge">+3.9%</span></div>
+          <div class="kv"><span class="k">Kelly %</span><span class="v amber" id="kPct">4.59%</span></div>
+          <div class="kv"><span class="k">Stake $</span><span class="v amber" id="kStake">$229.41</span></div>
+          <div class="kv"><span class="k">E[V] $</span><span class="v up" id="kEV">+$8.95</span></div>
+          <div class="kv"><span class="k">Risk of Ruin</span><span class="v" id="kRoR">0.43%</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLV Tracker -->
+    <section class="panel wide">
+      <div class="panel-head">
+        <h2>CLV Tracker · Closing Line Value</h2>
+        <span class="meta">30D rolling · 47 closed positions</span>
+      </div>
+      <div class="panel-body">
+        <svg class="spark" viewBox="0 0 600 80" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#00d68f" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#00d68f" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <polyline fill="url(#g1)" stroke="#00d68f" stroke-width="1.5"
+            points="0,60 30,55 60,50 90,52 120,45 150,40 180,42 210,35 240,38 270,30 300,28 330,32 360,25 390,22 420,28 450,20 480,18 510,22 540,15 570,12 600,10
+                   600,80 0,80"/>
+        </svg>
+        <table style="margin-top:10px">
+          <thead><tr><th>Date</th><th>Match</th><th>Bet</th><th class="num">Taken</th><th class="num">Close</th><th class="num">CLV</th><th class="num">Result</th></tr></thead>
+          <tbody>
+            <tr><td>05-29</td><td>Storm v Panthers</td><td><span class="tag nrl">NRL</span> Storm H</td><td class="num">1.95</td><td class="num">1.85</td><td class="num up">+5.4%</td><td class="num up">WIN +$185</td></tr>
+            <tr><td>05-28</td><td>Carlton v Essendon</td><td><span class="tag afl">AFL</span> O 168.5</td><td class="num">1.92</td><td class="num">1.88</td><td class="num up">+2.1%</td><td class="num dn">LOSS -$200</td></tr>
+            <tr><td>05-27</td><td>Broncos v Eels</td><td><span class="tag nrl">NRL</span> Broncos -6.5</td><td class="num">2.05</td><td class="num">1.95</td><td class="num up">+5.1%</td><td class="num up">WIN +$210</td></tr>
+            <tr><td>05-26</td><td>Geelong v Brisbane</td><td><span class="tag afl">AFL</span> Cats H</td><td class="num">1.78</td><td class="num">1.80</td><td class="num dn">-1.1%</td><td class="num up">WIN +$156</td></tr>
+            <tr><td>05-25</td><td>Sharks v Cowboys</td><td><span class="tag nrl">NRL</span> SGM 3-leg</td><td class="num">7.40</td><td class="num">6.20</td><td class="num up">+19.4%</td><td class="num dn">LOSS -$100</td></tr>
+            <tr><td>05-24</td><td>Sydney v Melbourne</td><td><span class="tag afl">AFL</span> Swans +12.5</td><td class="num">1.90</td><td class="num">1.83</td><td class="num up">+3.8%</td><td class="num up">WIN +$180</td></tr>
+            <tr><td>05-23</td><td>Roosters v Manly</td><td><span class="tag nrl">NRL</span> Roosters H</td><td class="num">1.65</td><td class="num">1.60</td><td class="num up">+3.1%</td><td class="num up">WIN +$130</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Right rail -->
+  <aside class="rail">
+
+    <div class="panel">
+      <div class="panel-head"><h2>Bankroll</h2><span class="meta">USD</span></div>
+      <div class="panel-body">
+        <div class="kvs">
+          <div class="kv"><span class="k">Balance</span><span class="v amber">$11,847.50</span></div>
+          <div class="kv"><span class="k">Available</span><span class="v">$10,562.00</span></div>
+          <div class="kv"><span class="k">Locked</span><span class="v">$1,285.50</span></div>
+          <div class="kv"><span class="k">Unit (1%)</span><span class="v">$118.48</span></div>
+          <div class="kv"><span class="k">Peak (HWM)</span><span class="v up">$12,108.20</span></div>
+          <div class="kv"><span class="k">Drawdown</span><span class="v dn">-2.16%</span></div>
+        </div>
+        <svg class="spark" style="margin-top:10px" viewBox="0 0 320 64" preserveAspectRatio="none">
+          <polyline fill="none" stroke="#ffa500" stroke-width="1.4"
+            points="0,50 20,48 40,45 60,42 80,40 100,38 120,35 140,32 160,30 180,28 200,30 220,25 240,22 260,24 280,18 300,16 320,14"/>
+        </svg>
+      </div>
     </div>
-    <a href="https://github.com/thotsl4yer69" class="cta">github.com/thotsl4yer69</a>
-  </div>
-</section>
 
-<footer>
-  MZ1312 // UNCAGED TECHNOLOGY · MIT 2026 · DRIFTER v1.31.2
-</footer>
+    <div class="panel">
+      <div class="panel-head"><h2>Open Positions</h2><span class="meta">4 live</span></div>
+      <div class="panel-body scroll">
+        <table>
+          <thead><tr><th>Match</th><th class="num">Stake</th><th class="num">@</th><th class="num">P/L</th></tr></thead>
+          <tbody>
+            <tr><td>Storm v Pan.</td><td class="num">$185</td><td class="num">1.95</td><td class="num up">+$87</td></tr>
+            <tr><td>Coll. v Carl.</td><td class="num">$240</td><td class="num">1.72</td><td class="num up">+$45</td></tr>
+            <tr><td>Bron. v Eels</td><td class="num">$320</td><td class="num">2.10</td><td class="num dn">-$18</td></tr>
+            <tr><td>Geel. v Bris.</td><td class="num">$540</td><td class="num">1.90</td><td class="num up">+$130</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Risk Limits</h2><span class="meta">v0.3</span></div>
+      <div class="panel-body">
+        <div class="kvs">
+          <div class="kv"><span class="k">Max stake</span><span class="v">5.0%</span></div>
+          <div class="kv"><span class="k">Max corr.</span><span class="v">+0.40</span></div>
+          <div class="kv"><span class="k">Daily loss</span><span class="v">-3.0%</span></div>
+          <div class="kv"><span class="k">Min edge</span><span class="v">+2.0%</span></div>
+          <div class="kv"><span class="k">Max SGM legs</span><span class="v">4</span></div>
+          <div class="kv"><span class="k">Status</span><span class="v up">OK</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Signal Feed</h2><span class="meta">live</span></div>
+      <div class="panel-body scroll" style="font-size:11px">
+        <p style="padding:4px 0;border-bottom:1px dotted var(--border)"><b style="color:var(--green)">▸ EDGE</b> · Broncos H drifted 2.10→2.15 (+2.4% CLV opp)</p>
+        <p style="padding:4px 0;border-bottom:1px dotted var(--border)"><b style="color:var(--amber)">▸ STEAM</b> · Storm money flowing; 1.95→1.85 in 12m</p>
+        <p style="padding:4px 0;border-bottom:1px dotted var(--border)"><b style="color:var(--blue)">▸ INJ</b> · J Cleary listed test (Sat); Penrith line +1.5</p>
+        <p style="padding:4px 0;border-bottom:1px dotted var(--border)"><b style="color:var(--green)">▸ MODEL</b> · Storm 68.4% vs market 54.1% → +14.3% edge</p>
+        <p style="padding:4px 0;border-bottom:1px dotted var(--border)"><b style="color:var(--red)">▸ STALE</b> · Bet365 Eels +6.5 vs market consensus +4.5</p>
+        <p style="padding:4px 0"><b style="color:var(--amber)">▸ WEATHER</b> · 18mm rain forecast Suncorp; total bias -3.2pts</p>
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+<div class="foot">
+  <span>ORACLE · MZ1312 · Quantitative Sports Trading Terminal</span>
+  <span>BUILT BY <a href="https://github.com/thotsl4yer69">@thotsl4yer69</a> · <a href="https://github.com/thotsl4yer69/oracle">SRC</a> · GAMBLE RESPONSIBLY · 18+</span>
+</div>
+
+<script>
+function pad(n){return String(n).padStart(2,'0')}
+function tick(){
+  const d=new Date();
+  document.getElementById('clock').textContent =
+    pad(d.getUTCHours())+':'+pad(d.getUTCMinutes())+':'+pad(d.getUTCSeconds())+' UTC';
+}
+setInterval(tick,1000);tick();
+
+// Poisson PMF
+function poisson(k,lambda){
+  let p=Math.exp(-lambda);
+  for(let i=1;i<=k;i++) p*=lambda/i;
+  return p;
+}
+function runPoisson(){
+  const lh=parseFloat(document.getElementById('pLh').value);
+  const la=parseFloat(document.getElementById('pLa').value);
+  const max=80;
+  let wh=0,wa=0,dr=0,total=0,best=0,bestS='0-0',over=0;
+  const ph=[],pa=[];
+  for(let i=0;i<=max;i++){ph.push(poisson(i,lh));pa.push(poisson(i,la));}
+  for(let h=0;h<=max;h++){
+    for(let a=0;a<=max;a++){
+      const p=ph[h]*pa[a];
+      if(h>a) wh+=p;
+      else if(a>h) wa+=p;
+      else dr+=p;
+      total += (h+a)*p;
+      if(h+a>40.5) over+=p;
+      if(p>best){best=p;bestS=h+'-'+a;}
+    }
+  }
+  document.getElementById('pWh').textContent=(wh*100).toFixed(1);
+  document.getElementById('pWa').textContent=(wa*100).toFixed(1);
+  document.getElementById('pDr').textContent=(dr*100).toFixed(1);
+  document.getElementById('pScr').textContent=bestS;
+  document.getElementById('pFhO').textContent=(1/wh).toFixed(2);
+  document.getElementById('pFaO').textContent=(1/wa).toFixed(2);
+  document.getElementById('pTot').textContent=total.toFixed(1);
+  document.getElementById('pOver').textContent=(over*100).toFixed(1)+'%';
+}
+
+// Kelly
+function kellyCalc(){
+  const b=parseFloat(document.getElementById('kBank').value);
+  const o=parseFloat(document.getElementById('kOdds').value);
+  const p=parseFloat(document.getElementById('kP').value);
+  const f=parseFloat(document.getElementById('kFrac').value);
+  const imp=1/o;
+  const edge=p-imp;
+  const k=Math.max(0,(p*(o-1)-(1-p))/(o-1));
+  const stake=b*k*f;
+  const ev=stake*(p*(o-1)-(1-p));
+  document.getElementById('kImp').textContent=(imp*100).toFixed(1)+'%';
+  document.getElementById('kEdge').textContent=(edge>=0?'+':'')+(edge*100).toFixed(1)+'%';
+  document.getElementById('kPct').textContent=(k*f*100).toFixed(2)+'%';
+  document.getElementById('kStake').textContent='$'+stake.toFixed(2);
+  document.getElementById('kEV').textContent=(ev>=0?'+$':'-$')+Math.abs(ev).toFixed(2);
+  document.getElementById('kRoR').textContent=Math.max(0.01,(1-edge*10)*0.5).toFixed(2)+'%';
+}
+
+// SGM
+function priceSgm(){
+  const legs=document.querySelectorAll('#legs .leg input');
+  let naive=1;
+  legs.forEach(x=>naive*=parseFloat(x.value)||1);
+  const corr=0.27;
+  const fair=naive*(1-corr*0.18);
+  const book=fair*0.873;
+  const edge=(fair-book)/book;
+  document.getElementById('sgmNaive').textContent=naive.toFixed(2);
+  document.getElementById('sgmFair').textContent=fair.toFixed(2);
+  document.getElementById('sgmBook').textContent=book.toFixed(2);
+  document.getElementById('sgmCorr').textContent='+'+corr.toFixed(2);
+  document.getElementById('sgmEdge').textContent=(edge>=0?'+':'')+(edge*100).toFixed(1)+'%';
+  document.getElementById('sgmKelly').textContent='$'+(10000*Math.max(0,edge)*0.5).toFixed(0);
+}
+function addLeg(){
+  const html=`<div class="leg">
+    <select><option>Custom prop</option></select>
+    <input type="number" step="0.01" value="2.00" class="num">
+    <button class="leg-remove" onclick="this.parentElement.remove()">×</button>
+  </div>`;
+  document.getElementById('legs').insertAdjacentHTML('beforeend',html);
+}
+document.querySelectorAll('.leg-remove').forEach(b=>b.onclick=()=>b.parentElement.remove());
+</script>
 
 </body>
 </html>
